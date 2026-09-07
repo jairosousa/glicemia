@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Sistema de cores das faixas de glicemia
+   --------------------------------------------------------------------------
+   Cada faixa tem três cores: fundo da etiqueta, texto e a cor "sólida" usada
+   no gráfico. Todos os pares texto/fundo foram verificados com contraste
+   acima de 4,5:1 (WCAG 2.1 AA) — os valores reais ficam entre 6,8:1 e 10,6:1.
+
+   Lembrete permanente: a cor NUNCA comunica sozinha. Toda etiqueta carrega
+   também ícone e texto (ver lib/glicemia.ts → CLASSIFICACAO_INFO), porque
+   diabetes pode causar retinopatia e afetar a percepção de cores.
+   ========================================================================== */
+
+:root {
+  --fundo: #ffffff;
+  --texto: #171717;
+  --texto-suave: #52525b;
+  --borda: #e4e4e7;
+  --superficie: #fafafa;
+
+  --hipo-grave-fundo: #fee2e2;
+  --hipo-grave-texto: #7f1d1d;
+  --hipo-grave-solido: #991b1b;
+
+  --hipo-fundo: #fee2e2;
+  --hipo-texto: #991b1b;
+  --hipo-solido: #dc2626;
+
+  --alvo-fundo: #dcfce7;
+  --alvo-texto: #14532d;
+  --alvo-solido: #15803d;
+
+  --hiper-fundo: #fef3c7;
+  --hiper-texto: #78350f;
+  --hiper-solido: #b45309;
+
+  --hiper-severa-fundo: #ffedd5;
+  --hiper-severa-texto: #7c2d12;
+  --hiper-severa-solido: #c2410c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --fundo: #0a0a0a;
+    --texto: #ededed;
+    --texto-suave: #a1a1aa;
+    --borda: #27272a;
+    --superficie: #161616;
+
+    --hipo-grave-fundo: #450a0a;
+    --hipo-grave-texto: #fca5a5;
+    --hipo-grave-solido: #ef4444;
+
+    --hipo-fundo: #450a0a;
+    --hipo-texto: #fca5a5;
+    --hipo-solido: #f87171;
+
+    --alvo-fundo: #052e16;
+    --alvo-texto: #86efac;
+    --alvo-solido: #4ade80;
+
+    --hiper-fundo: #451a03;
+    --hiper-texto: #fcd34d;
+    --hiper-solido: #fbbf24;
+
+    --hiper-severa-fundo: #431407;
+    --hiper-severa-texto: #fdba74;
+    --hiper-severa-solido: #fb923c;
+  }
+}
+
+/* Expõe os tokens ao Tailwind, para uso como bg-alvo, text-hipo etc.
+   As cores "sólidas" serão usadas pelo gráfico do painel (etapa 9). */
+@theme inline {
+  --color-fundo: var(--fundo);
+  --color-texto: var(--texto);
+  --color-texto-suave: var(--texto-suave);
+  --color-borda: var(--borda);
+  --color-superficie: var(--superficie);
+
+  --color-hipo-grave: var(--hipo-grave-solido);
+  --color-hipo: var(--hipo-solido);
+  --color-alvo: var(--alvo-solido);
+  --color-hiper: var(--hiper-solido);
+  --color-hiper-severa: var(--hiper-severa-solido);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* --------------------------------------------------------------------------
+   Etiqueta de classificação
+   Usada em lib/glicemia.ts → CLASSIFICACAO_INFO.classe
+   -------------------------------------------------------------------------- */
+
+.faixa {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+}
+
+.faixa-hipo-grave {
+  background: var(--hipo-grave-fundo);
+  color: var(--hipo-grave-texto);
+}
+.faixa-hipo {
+  background: var(--hipo-fundo);
+  color: var(--hipo-texto);
+}
+.faixa-alvo {
+  background: var(--alvo-fundo);
+  color: var(--alvo-texto);
+}
+.faixa-hiper {
+  background: var(--hiper-fundo);
+  color: var(--hiper-texto);
+}
+.faixa-hiper-severa {
+  background: var(--hiper-severa-fundo);
+  color: var(--hiper-severa-texto);
+}
+
+/* --------------------------------------------------------------------------
+   Números
+   Fonte tabular para que os dígitos tenham a mesma largura e as colunas de
+   glicemia não "dancem" ao rolar o histórico.
+   -------------------------------------------------------------------------- */
+
+.numero {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------------------------------------------------------
+   Acessibilidade
+   -------------------------------------------------------------------------- */
+
+/* Alvo de toque mínimo de 44x44px (WCAG 2.1 AA, critério 2.5.5). */
+.toque {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+}
+
+/* Foco sempre visível, inclusive em navegação por teclado no desktop. */
+:focus-visible {
+  outline: 2px solid var(--texto);
+  outline-offset: 2px;
+}
+
+/* Texto visível apenas para leitores de tela. */
+.apenas-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
