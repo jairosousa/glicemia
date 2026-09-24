@@ -1,0 +1,62 @@
+<svg viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Gradiente do Escudo / Shield Gradient -->
+    <linearGradient id="shieldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.35" />
+      <stop offset="100%" stop-color="#1E40AF" stop-opacity="0.15" />
+    </linearGradient>
+
+    <!-- Gradiente do Contorno do Escudo -->
+    <linearGradient id="shieldBorder" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#60A5FA" />
+      <stop offset="100%" stop-color="#2563EB" />
+    </linearGradient>
+
+    <!-- Gradiente da Gota / Blood Drop Gradient -->
+    <linearGradient id="dropGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF5252" />
+      <stop offset="50%" stop-color="#E53935" />
+      <stop offset="100%" stop-color="#B71C1C" />
+    </linearGradient>
+
+    <!-- Sombra projetada / Drop Shadow -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" flood-color="#000000" flood-opacity="0.2" />
+    </filter>
+
+    <filter id="innerGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" flood-color="#FFFFFF" flood-opacity="0.4" />
+    </filter>
+  </defs>
+
+  <!-- Escudo Protetor (Shield) -->
+  <path d="M 256 60 
+           C 336 60, 386 85, 406 110 
+           C 406 235, 361 347, 256 420 
+           C 151 347, 106 235, 106 110 
+           C 126 85, 176 60, 256 60 Z" fill="url(#shieldGradient)" stroke="url(#shieldBorder)" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)" />
+
+  <!-- Linha interna do escudo -->
+  <path d="M 256 82 
+           C 324 82, 366 103, 383 124 
+           C 383 230, 346 325, 256 390 
+           C 166 325, 129 230, 129 124 
+           C 146 103, 188 82, 256 82 Z" fill="none" stroke="#60A5FA" stroke-opacity="0.4" stroke-width="3" />
+
+  <!-- Gotícula de Sangue (Blood Drop) -->
+  <path d="M 256 135 
+           C 256 135, 336 247, 336 305 
+           C 336 349.18, 299.18 385, 256 385 
+           C 212.82 385, 176 349.18, 176 305 
+           C 176 247, 256 135, 256 135 Z" fill="url(#dropGradient)" filter="url(#shadow)" />
+
+  <!-- Brilho/Reflexo na Gota -->
+  <path d="M 226 185 
+           C 211 222, 198 260, 201 297
+           C 196 285, 196 247, 226 185 Z" fill="#FFFFFF" opacity="0.45" />
+
+  <!-- Ícone de Check (Símbolo de Controle) -->
+  <path d="M 224 298 
+           L 246 320 
+           L 298 260" fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" filter="url(#innerGlow)" />
+</svg>
