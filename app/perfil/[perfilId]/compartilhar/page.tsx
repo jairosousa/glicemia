@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { FormularioInsulina } from "@/components/FormularioInsulina";
+import { FormularioCompartilhar } from "@/components/FormularioCompartilhar";
 import { obterPapelAcesso } from "@/lib/acesso";
 import type { Perfil } from "@/lib/perfil";
 import { criarClienteServidor } from "@/lib/supabase/server";
 
-export default async function NovaInsulinaPage({
+export default async function CompartilharPage({
   params,
 }: {
   params: Promise<{ perfilId: string }>;
@@ -41,10 +41,14 @@ export default async function NovaInsulinaPage({
         <Link href={`/perfil/${perfilId}`} className="text-sm text-texto-suave hover:underline">
           ← {perfil.nome}
         </Link>
-        <h1 className="text-2xl font-bold">Registrar insulina</h1>
+        <h1 className="text-2xl font-bold">Compartilhar perfil</h1>
+        <p className="text-sm text-texto-suave">
+          Dá acesso de leitura ao histórico, painel e relatório de {perfil.nome} — sem poder criar,
+          editar ou excluir nada.
+        </p>
       </div>
 
-      <FormularioInsulina perfilId={perfilId} perfilNome={perfil.nome} usuarioId={user.id} />
+      <FormularioCompartilhar perfilId={perfilId} />
     </main>
   );
 }

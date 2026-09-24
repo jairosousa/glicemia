@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { FormularioGlicemia } from "@/components/FormularioGlicemia";
+import { obterPapelAcesso } from "@/lib/acesso";
 import { METAS_PADRAO } from "@/lib/glicemia";
 import { linhaParaMetas, type Perfil, type PerfilMetaLinha } from "@/lib/perfil";
 import { criarClienteServidor } from "@/lib/supabase/server";
@@ -27,6 +28,11 @@ export default async function NovaGlicemiaPage({
 
   if (!perfil) {
     notFound();
+  }
+
+  const papel = await obterPapelAcesso(supabase, perfilId, user.id);
+  if (papel !== "PACIENTE") {
+    redirect(`/perfil/${perfilId}`);
   }
 
   return (

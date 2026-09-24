@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { IndicadorFila } from "@/components/IndicadorFila";
+import { RegistrarServiceWorker } from "@/components/RegistrarServiceWorker";
+import { SincronizadorFila } from "@/components/SincronizadorFila";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -17,6 +20,14 @@ export const metadata: Metadata = {
   description:
     "Acompanhamento de glicemia, insulina, refeições e humor. Ferramenta de registro pessoal — não substitui avaliação médica.",
   applicationName: "Glicemia",
+  // PROJECT.md F10: instalável na tela de início. No iOS, o app só recebe
+  // notificação/comportamento de app instalado a partir daqui — ver a
+  // ressalva de §8.6 sobre push no iOS (fase 3).
+  appleWebApp: {
+    capable: true,
+    title: "Glicemia",
+    statusBarStyle: "default",
+  },
 };
 
 /**
@@ -40,7 +51,14 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="pt-BR"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <RegistrarServiceWorker />
+        <SincronizadorFila />
+        <div className="mx-auto w-full max-w-3xl px-5 sm:px-8">
+          <IndicadorFila />
+        </div>
+        {children}
+      </body>
     </html>
   );
 }

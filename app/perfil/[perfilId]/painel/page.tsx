@@ -55,11 +55,19 @@ export default async function PainelPage({
 
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-5 py-8 sm:py-12">
-      <div className="flex flex-col gap-1.5">
-        <Link href={`/perfil/${perfilId}`} className="text-sm text-texto-suave hover:underline">
-          ← {perfil.nome}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex flex-col gap-1.5">
+          <Link href={`/perfil/${perfilId}`} className="text-sm text-texto-suave hover:underline">
+            ← {perfil.nome}
+          </Link>
+          <h1 className="text-2xl font-bold">Painel</h1>
+        </div>
+        <Link
+          href={`/perfil/${perfilId}/relatorio?periodo=${periodo}`}
+          className="toque flex items-center rounded-lg border border-borda px-3 text-sm font-medium hover:bg-superficie"
+        >
+          Relatório
         </Link>
-        <h1 className="text-2xl font-bold">Painel</h1>
       </div>
 
       <div className="flex flex-wrap gap-2">

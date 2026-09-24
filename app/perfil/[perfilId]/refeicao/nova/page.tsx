@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { FormularioInsulina } from "@/components/FormularioInsulina";
+import { FormularioRefeicao } from "@/components/FormularioRefeicao";
 import { obterPapelAcesso } from "@/lib/acesso";
 import type { Perfil } from "@/lib/perfil";
 import { criarClienteServidor } from "@/lib/supabase/server";
 
-export default async function NovaInsulinaPage({
+export default async function NovaRefeicaoPage({
   params,
 }: {
   params: Promise<{ perfilId: string }>;
@@ -41,10 +41,10 @@ export default async function NovaInsulinaPage({
         <Link href={`/perfil/${perfilId}`} className="text-sm text-texto-suave hover:underline">
           ← {perfil.nome}
         </Link>
-        <h1 className="text-2xl font-bold">Registrar insulina</h1>
+        <h1 className="text-2xl font-bold">Registrar refeição</h1>
       </div>
 
-      <FormularioInsulina perfilId={perfilId} perfilNome={perfil.nome} usuarioId={user.id} />
+      <FormularioRefeicao perfilId={perfilId} perfilNome={perfil.nome} usuarioId={user.id} />
     </main>
   );
 }

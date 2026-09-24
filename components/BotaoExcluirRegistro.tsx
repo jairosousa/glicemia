@@ -5,7 +5,7 @@ import { useState } from "react";
 import { criarClienteNavegador } from "@/lib/supabase/client";
 
 type Props = {
-  tabela: "medicao_glicemia" | "registro_insulina";
+  tabela: "medicao_glicemia" | "registro_insulina" | "refeicao" | "registro_humor";
   registroId: string;
   /** Usado só na pergunta de confirmação, ex.: "a glicemia de 95 mg/dL". */
   descricao: string;

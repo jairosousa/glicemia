@@ -2,96 +2,77 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { EtiquetaFaixa } from "@/components/EtiquetaFaixa";
 import { SeletorPill } from "@/components/SeletorPill";
 import { paraDatetimeLocal, deDatetimeLocal } from "@/lib/datetime";
 import { salvarOuEnfileirar } from "@/lib/filaOffline";
+import { validarDataHora } from "@/lib/glicemia";
 import {
-  CONTEXTO_ROTULO,
-  GLICEMIA_MAX,
-  GLICEMIA_MIN,
-  inferirContexto,
-  validarDataHora,
-  validarGlicemia,
-  type Contexto,
-  type Metas,
-} from "@/lib/glicemia";
+  CARBOIDRATO_MAX,
+  CARBOIDRATO_MIN,
+  TIPO_REFEICAO_ROTULO,
+  inferirTipoRefeicao,
+  validarCarboidrato,
+  type TipoRefeicao,
+} from "@/lib/refeicao";
 import { criarClienteNavegador } from "@/lib/supabase/client";
 
 type Props = {
   perfilId: string;
   perfilNome: string;
-  metas: Metas;
   usuarioId: string;
 };
 
 type Status = "preenchendo" | "salvando" | "salvo" | "erro";
 
-const CONTEXTOS: Contexto[] = [
-  "JEJUM",
-  "ANTES_REFEICAO",
-  "POS_REFEICAO_2H",
-  "ANTES_DORMIR",
-  "MADRUGADA",
-  "ANTES_EXERCICIO",
-  "DEPOIS_EXERCICIO",
-  "SINTOMA_HIPO",
-  "ALEATORIO",
-];
+const TIPOS: TipoRefeicao[] = ["CAFE", "ALMOCO", "JANTAR", "LANCHE"];
 
 /**
- * Registro de glicemia — a tela mais importante do app.
+ * Registro de refeição (PROJECT.md F4).
  *
- * PROJECT.md §9: registrar precisa custar menos de 10 segundos, do toque no
- * ícone à confirmação. Três decisões de design vêm direto disso:
- *
- * 1. Data/hora e contexto já chegam preenchidos (inferidos), então na maioria
- *    das vezes só falta digitar o número e tocar em salvar.
- * 2. O campo de valor recebe foco automático assim que a tela abre.
- * 3. A gravação é direto do navegador para o Supabase — sem passar por uma
- *    rota do servidor Next.js — porque cada requisição a mais é tempo a mais
- *    entre o toque e a confirmação.
+ * Mesma arquitetura de FormularioGlicemia.tsx / FormularioInsulina.tsx:
+ * grava direto do navegador para o Supabase, sem passar pelo servidor
+ * Next.js, para manter o registro rápido.
  */
-export function FormularioGlicemia({ perfilId, perfilNome, metas, usuarioId }: Props) {
-  const [valor, setValor] = useState("");
+export function FormularioRefeicao({ perfilId, perfilNome, usuarioId }: Props) {
+  const [tipo, setTipo] = useState<TipoRefeicao>("LANCHE");
+  const [carboidratos, setCarboidratos] = useState("");
+  const [descricao, setDescricao] = useState("");
   const [dataHora, setDataHora] = useState("");
-  const [contexto, setContexto] = useState<Contexto>("ALEATORIO");
-  const [observacao, setObservacao] = useState("");
   const [status, setStatus] = useState<Status>("preenchendo");
-  const [erroValor, setErroValor] = useState<string | null>(null);
+  const [erroCarboidratos, setErroCarboidratos] = useState<string | null>(null);
   const [erroDataHora, setErroDataHora] = useState<string | null>(null);
-  const [ultimoValor, setUltimoValor] = useState<number | null>(null);
+  const [ultimoRegistro, setUltimoRegistro] = useState<{ tipo: TipoRefeicao; carboidratos: number } | null>(
+    null,
+  );
   const [pendente, setPendente] = useState(false);
 
-  const campoValorRef = useRef<HTMLInputElement>(null);
+  const campoCarboidratosRef = useRef<HTMLInputElement>(null);
 
   function reiniciarParaAgora() {
     const agora = new Date();
     setDataHora(paraDatetimeLocal(agora));
-    setContexto(inferirContexto(agora));
+    setTipo(inferirTipoRefeicao(agora));
   }
 
-  // Roda só no cliente: evita que o servidor e o navegador calculem "agora"
-  // em instantes diferentes e gerem um aviso de hidratação no React.
   useEffect(() => {
     reiniciarParaAgora();
   }, []);
 
   useEffect(() => {
     if (status === "preenchendo") {
-      campoValorRef.current?.focus();
+      campoCarboidratosRef.current?.focus();
     }
   }, [status]);
 
   async function salvar(evento: React.FormEvent) {
     evento.preventDefault();
 
-    const validacao = validarGlicemia(valor);
+    const validacao = validarCarboidrato(carboidratos);
     if (!validacao.ok) {
-      setErroValor(validacao.erro);
+      setErroCarboidratos(validacao.erro);
       return;
     }
-    setErroValor(null);
+    setErroCarboidratos(null);
 
     const dataHoraValidada = validarDataHora(deDatetimeLocal(dataHora));
     if (!dataHoraValidada.ok) {
@@ -102,32 +83,32 @@ export function FormularioGlicemia({ perfilId, perfilNome, metas, usuarioId }: P
     setStatus("salvando");
 
     const supabase = criarClienteNavegador();
-    const { pendente: ficouPendente } = await salvarOuEnfileirar(supabase, "medicao_glicemia", {
+    const { pendente: ficouPendente } = await salvarOuEnfileirar(supabase, "refeicao", {
       id: crypto.randomUUID(),
       perfil_id: perfilId,
-      valor: validacao.valor,
+      tipo,
+      carboidratos_gramas: validacao.valor,
       data_hora: dataHoraValidada.valor.toISOString(),
-      contexto,
-      observacao: observacao.trim() || null,
+      descricao: descricao.trim() || null,
       registrado_por: usuarioId,
     });
 
     setPendente(ficouPendente);
-    setUltimoValor(validacao.valor);
+    setUltimoRegistro({ tipo, carboidratos: validacao.valor });
     setStatus("salvo");
   }
 
   function registrarOutra() {
-    setValor("");
-    setObservacao("");
-    setUltimoValor(null);
+    setCarboidratos("");
+    setDescricao("");
+    setUltimoRegistro(null);
     setPendente(false);
     setErroDataHora(null);
     reiniciarParaAgora();
     setStatus("preenchendo");
   }
 
-  if (status === "salvo" && ultimoValor !== null) {
+  if (status === "salvo" && ultimoRegistro !== null) {
     return (
       <div className="flex flex-col items-center gap-6 py-6 text-center">
         <div className="flex flex-col items-center gap-3">
@@ -135,9 +116,10 @@ export function FormularioGlicemia({ perfilId, perfilNome, metas, usuarioId }: P
             ✓
           </span>
           <p className="numero text-4xl font-bold">
-            {ultimoValor} <span className="text-lg font-normal text-texto-suave">mg/dL</span>
+            {ultimoRegistro.carboidratos}{" "}
+            <span className="text-lg font-normal text-texto-suave">g</span>
           </p>
-          <EtiquetaFaixa valor={ultimoValor} metas={metas} detalhe="longo" />
+          <span className="faixa faixa-alvo">{TIPO_REFEICAO_ROTULO[ultimoRegistro.tipo]}</span>
           {pendente && (
             <p className="faixa faixa-hiper text-sm">
               Salvo localmente — sobe sozinho quando a internet voltar.
@@ -151,7 +133,7 @@ export function FormularioGlicemia({ perfilId, perfilNome, metas, usuarioId }: P
             onClick={registrarOutra}
             className="toque rounded-lg bg-texto px-4 font-medium text-fundo"
           >
-            Registrar outra leitura
+            Registrar outra refeição
           </button>
           <Link
             href={`/perfil/${perfilId}`}
@@ -167,41 +149,41 @@ export function FormularioGlicemia({ perfilId, perfilNome, metas, usuarioId }: P
   return (
     <form onSubmit={salvar} className="flex flex-col gap-5" noValidate>
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="valor" className="text-sm font-medium">
-          Glicemia (mg/dL)
+        <span className="text-sm font-medium">Tipo</span>
+        <SeletorPill
+          opcoes={TIPOS.map((t) => ({ valor: t, rotulo: TIPO_REFEICAO_ROTULO[t] }))}
+          valor={tipo}
+          aoMudar={setTipo}
+          rotuloGrupo="Tipo de refeição"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="carboidratos" className="text-sm font-medium">
+          Carboidratos (g)
         </label>
         <input
-          ref={campoValorRef}
-          id="valor"
-          name="valor"
+          ref={campoCarboidratosRef}
+          id="carboidratos"
+          name="carboidratos"
           type="text"
           inputMode="numeric"
           pattern="[0-9]*"
           autoComplete="off"
           maxLength={3}
           required
-          value={valor}
-          onChange={(e) => setValor(e.target.value.replace(/[^0-9]/g, ""))}
-          placeholder={`${GLICEMIA_MIN}–${GLICEMIA_MAX}`}
-          aria-invalid={erroValor ? true : undefined}
-          aria-describedby={erroValor ? "erro-valor" : undefined}
+          value={carboidratos}
+          onChange={(e) => setCarboidratos(e.target.value.replace(/[^0-9]/g, ""))}
+          placeholder={`${CARBOIDRATO_MIN}–${CARBOIDRATO_MAX}`}
+          aria-invalid={erroCarboidratos ? true : undefined}
+          aria-describedby={erroCarboidratos ? "erro-carboidratos" : undefined}
           className="numero toque rounded-lg border border-borda bg-fundo px-3 text-3xl font-semibold"
         />
-        {erroValor && (
-          <p id="erro-valor" role="alert" className="text-sm text-hipo">
-            {erroValor}
+        {erroCarboidratos && (
+          <p id="erro-carboidratos" role="alert" className="text-sm text-hipo">
+            {erroCarboidratos}
           </p>
         )}
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <span className="text-sm font-medium">Contexto</span>
-        <SeletorPill
-          opcoes={CONTEXTOS.map((c) => ({ valor: c, rotulo: CONTEXTO_ROTULO[c] }))}
-          valor={contexto}
-          aoMudar={setContexto}
-          rotuloGrupo="Contexto da medição"
-        />
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -227,15 +209,16 @@ export function FormularioGlicemia({ perfilId, perfilNome, metas, usuarioId }: P
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="observacao" className="text-sm font-medium">
-          Observação <span className="font-normal text-texto-suave">(opcional)</span>
+        <label htmlFor="descricao" className="text-sm font-medium">
+          Descrição <span className="font-normal text-texto-suave">(opcional)</span>
         </label>
         <input
-          id="observacao"
-          name="observacao"
+          id="descricao"
+          name="descricao"
           type="text"
-          value={observacao}
-          onChange={(e) => setObservacao(e.target.value)}
+          value={descricao}
+          onChange={(e) => setDescricao(e.target.value)}
+          placeholder="Ex.: arroz, feijão e frango"
           className="toque rounded-lg border border-borda bg-fundo px-3"
         />
       </div>

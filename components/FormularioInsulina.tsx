@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SeletorPill } from "@/components/SeletorPill";
 import { paraDatetimeLocal, deDatetimeLocal } from "@/lib/datetime";
+import { salvarOuEnfileirar } from "@/lib/filaOffline";
 import {
   INSULINA_MAX,
   INSULINA_MIN,
@@ -40,10 +41,10 @@ export function FormularioInsulina({ perfilId, perfilNome, usuarioId }: Props) {
   const [status, setStatus] = useState<Status>("preenchendo");
   const [erroUnidades, setErroUnidades] = useState<string | null>(null);
   const [erroDataHora, setErroDataHora] = useState<string | null>(null);
-  const [erroGeral, setErroGeral] = useState<string | null>(null);
   const [ultimoRegistro, setUltimoRegistro] = useState<{ tipo: TipoInsulina; unidades: number } | null>(
     null,
   );
+  const [pendente, setPendente] = useState(false);
 
   const campoUnidadesRef = useRef<HTMLInputElement>(null);
 
@@ -77,11 +78,10 @@ export function FormularioInsulina({ perfilId, perfilNome, usuarioId }: Props) {
       return;
     }
     setErroDataHora(null);
-    setErroGeral(null);
     setStatus("salvando");
 
     const supabase = criarClienteNavegador();
-    const { error } = await supabase.from("registro_insulina").insert({
+    const { pendente: ficouPendente } = await salvarOuEnfileirar(supabase, "registro_insulina", {
       id: crypto.randomUUID(),
       perfil_id: perfilId,
       tipo,
@@ -91,12 +91,7 @@ export function FormularioInsulina({ perfilId, perfilNome, usuarioId }: Props) {
       registrado_por: usuarioId,
     });
 
-    if (error) {
-      setErroGeral("Não foi possível salvar. Verifique sua internet e tente novamente.");
-      setStatus("erro");
-      return;
-    }
-
+    setPendente(ficouPendente);
     setUltimoRegistro({ tipo, unidades: validacao.valor });
     setStatus("salvo");
   }
@@ -105,7 +100,7 @@ export function FormularioInsulina({ perfilId, perfilNome, usuarioId }: Props) {
     setUnidades("");
     setObservacao("");
     setUltimoRegistro(null);
-    setErroGeral(null);
+    setPendente(false);
     setErroDataHora(null);
     reiniciarParaAgora();
     setStatus("preenchendo");
@@ -123,6 +118,11 @@ export function FormularioInsulina({ perfilId, perfilNome, usuarioId }: Props) {
             <span className="text-lg font-normal text-texto-suave">U</span>
           </p>
           <span className="faixa faixa-alvo">{TIPO_INSULINA_ROTULO[ultimoRegistro.tipo]}</span>
+          {pendente && (
+            <p className="faixa faixa-hiper text-sm">
+              Salvo localmente — sobe sozinho quando a internet voltar.
+            </p>
+          )}
         </div>
 
         <div className="flex w-full max-w-xs flex-col gap-3">
@@ -217,12 +217,6 @@ export function FormularioInsulina({ perfilId, perfilNome, usuarioId }: Props) {
           className="toque rounded-lg border border-borda bg-fundo px-3"
         />
       </div>
-
-      {erroGeral && (
-        <p role="alert" className="faixa faixa-hipo text-sm">
-          {erroGeral}
-        </p>
-      )}
 
       <button
         type="submit"

@@ -1,4 +1,6 @@
 import type { Contexto, TipoInsulina } from "@/lib/glicemia";
+import type { NivelHumor } from "@/lib/humor";
+import type { TipoRefeicao } from "@/lib/refeicao";
 
 export type ItemGlicemia = {
   tipo: "GLICEMIA";
@@ -18,7 +20,24 @@ export type ItemInsulina = {
   observacao: string | null;
 };
 
-export type ItemHistorico = ItemGlicemia | ItemInsulina;
+export type ItemRefeicao = {
+  tipo: "REFEICAO";
+  id: string;
+  dataHora: string;
+  tipoRefeicao: TipoRefeicao;
+  carboidratosGramas: number;
+  descricao: string | null;
+};
+
+export type ItemHumor = {
+  tipo: "HUMOR";
+  id: string;
+  dataHora: string;
+  nivel: NivelHumor;
+  observacao: string | null;
+};
+
+export type ItemHistorico = ItemGlicemia | ItemInsulina | ItemRefeicao | ItemHumor;
 
 /** Formato bruto de uma linha de `medicao_glicemia` (colunas snake_case). */
 type LinhaMedicaoGlicemia = {
@@ -38,10 +57,29 @@ type LinhaRegistroInsulina = {
   observacao: string | null;
 };
 
-/** Une glicemias e doses de insulina numa única linha do tempo, mais recente primeiro. */
+/** Formato bruto de uma linha de `refeicao` (colunas snake_case). */
+type LinhaRefeicao = {
+  id: string;
+  data_hora: string;
+  tipo: TipoRefeicao;
+  carboidratos_gramas: number;
+  descricao: string | null;
+};
+
+/** Formato bruto de uma linha de `registro_humor` (colunas snake_case). */
+type LinhaRegistroHumor = {
+  id: string;
+  data_hora: string;
+  nivel: NivelHumor;
+  observacao: string | null;
+};
+
+/** Une todos os tipos de registro numa única linha do tempo, mais recente primeiro. */
 export function unificarHistorico(
   glicemias: LinhaMedicaoGlicemia[],
   insulinas: LinhaRegistroInsulina[],
+  refeicoes: LinhaRefeicao[],
+  humores: LinhaRegistroHumor[],
 ): ItemHistorico[] {
   const itens: ItemHistorico[] = [
     ...glicemias.map(
@@ -64,6 +102,25 @@ export function unificarHistorico(
         observacao: i.observacao,
       }),
     ),
+    ...refeicoes.map(
+      (r): ItemRefeicao => ({
+        tipo: "REFEICAO",
+        id: r.id,
+        dataHora: r.data_hora,
+        tipoRefeicao: r.tipo,
+        carboidratosGramas: r.carboidratos_gramas,
+        descricao: r.descricao,
+      }),
+    ),
+    ...humores.map(
+      (h): ItemHumor => ({
+        tipo: "HUMOR",
+        id: h.id,
+        dataHora: h.data_hora,
+        nivel: h.nivel,
+        observacao: h.observacao,
+      }),
+    ),
   ];
 
   return itens.sort((a, b) => b.dataHora.localeCompare(a.dataHora));
@@ -79,10 +136,12 @@ export function periodoValido(valor: string | undefined): PeriodoDias {
     : 30;
 }
 
-export type FiltroTipo = "TODOS" | "GLICEMIA" | "INSULINA";
+export type FiltroTipo = "TODOS" | "GLICEMIA" | "INSULINA" | "REFEICAO" | "HUMOR";
 
 export function filtroTipoValido(valor: string | undefined): FiltroTipo {
-  return valor === "GLICEMIA" || valor === "INSULINA" ? valor : "TODOS";
+  return valor === "GLICEMIA" || valor === "INSULINA" || valor === "REFEICAO" || valor === "HUMOR"
+    ? valor
+    : "TODOS";
 }
 
 /** Data/hora de formatação curta em pt-BR, para as linhas do histórico. */

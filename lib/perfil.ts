@@ -1,4 +1,4 @@
-import type { Metas } from "@/lib/glicemia";
+import { GLICEMIA_MAX, GLICEMIA_MIN, type Metas } from "@/lib/glicemia";
 
 export type Perfil = {
   id: string;
@@ -74,4 +74,79 @@ export function validarNovoPerfil(entrada: { nome: unknown; dataNascimento: unkn
   }
 
   return { ok: true, nome, dataNascimento };
+}
+
+export type CampoMeta = "alvoMin" | "alvoMax" | "limiteHipoGrave" | "limiteHiperSevera";
+
+export type ValidacaoMetas =
+  | { ok: true; metas: Metas }
+  | { ok: false; erros: Partial<Record<CampoMeta, string>> };
+
+const ROTULO_CAMPO_META: Record<CampoMeta, string> = {
+  limiteHipoGrave: "Hipo grave abaixo de",
+  alvoMin: "Faixa alvo (mínimo)",
+  alvoMax: "Faixa alvo (máximo)",
+  limiteHiperSevera: "Hiper severa acima de",
+};
+
+function validarCampoMeta(campo: CampoMeta, entrada: unknown): { ok: true; valor: number } | { ok: false; erro: string } {
+  const texto = String(entrada ?? "").trim();
+
+  if (texto === "") {
+    return { ok: false, erro: `Informe "${ROTULO_CAMPO_META[campo]}".` };
+  }
+
+  const numero = Number(texto);
+
+  if (!Number.isInteger(numero)) {
+    return { ok: false, erro: "Use um número inteiro." };
+  }
+  if (numero < GLICEMIA_MIN || numero > GLICEMIA_MAX) {
+    return { ok: false, erro: `Informe entre ${GLICEMIA_MIN} e ${GLICEMIA_MAX} mg/dL.` };
+  }
+
+  return { ok: true, valor: numero };
+}
+
+/**
+ * Validação do formulário de metas, espelhando a restrição do banco
+ * (supabase/migrations/0001_schema_inicial.sql, `metas_em_ordem` na tabela
+ * `perfil_meta`): as quatro faixas precisam estar em ordem crescente de
+ * gravidade. Validar aqui evita mandar o formulário ao servidor só para
+ * descobrir que o banco recusou.
+ */
+export function validarMetas(entrada: Record<CampoMeta, unknown>): ValidacaoMetas {
+  const erros: Partial<Record<CampoMeta, string>> = {};
+  const valores: Partial<Record<CampoMeta, number>> = {};
+
+  for (const campo of Object.keys(ROTULO_CAMPO_META) as CampoMeta[]) {
+    const resultado = validarCampoMeta(campo, entrada[campo]);
+    if (!resultado.ok) {
+      erros[campo] = resultado.erro;
+    } else {
+      valores[campo] = resultado.valor;
+    }
+  }
+
+  if (Object.keys(erros).length > 0) {
+    return { ok: false, erros };
+  }
+
+  const { limiteHipoGrave, alvoMin, alvoMax, limiteHiperSevera } = valores as Record<CampoMeta, number>;
+
+  if (!(limiteHipoGrave < alvoMin && alvoMin < alvoMax && alvoMax < limiteHiperSevera)) {
+    const mensagem =
+      "As faixas precisam ficar em ordem crescente: hipo grave < faixa alvo (mínimo) < faixa alvo (máximo) < hiper severa.";
+    return {
+      ok: false,
+      erros: {
+        limiteHipoGrave: mensagem,
+        alvoMin: mensagem,
+        alvoMax: mensagem,
+        limiteHiperSevera: mensagem,
+      },
+    };
+  }
+
+  return { ok: true, metas: { alvoMin, alvoMax, limiteHipoGrave, limiteHiperSevera } };
 }

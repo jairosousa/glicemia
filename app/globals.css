@@ -171,3 +171,26 @@ body {
   white-space: nowrap;
   border: 0;
 }
+
+/* --------------------------------------------------------------------------
+   Impressão (relatório da consulta — PROJECT.md F9)
+   -------------------------------------------------------------------------- */
+
+/* As cores de fundo somem na impressão por padrão em boa parte dos
+   navegadores. A classificação nunca é só texto (§5.2), então isso é
+   obrigatório em tudo que usa .faixa. */
+.faixa {
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 1.5cm;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
