@@ -4,9 +4,9 @@
 > Documento vivo: muda conforme o app é construído e testado.
 
 - **Autor:** Jairo Nascimento
-- **Data:** 2026-09-07
-- **Versão:** 2.0 *(v1.0 assumia paciente único sem acompanhante; corrigido)*
-- **Status:** premissas aprovadas — em desenvolvimento
+- **Data:** 2026-09-24 *(revisão — fases 1 e 2 entregues)*
+- **Versão:** 3.0 *(v2.0 assumia o app ainda em desenvolvimento; fases 1 e 2 concluídas e em produção na Vercel)*
+- **Status:** fases 1 e 2 em produção — fase 3 aguardando uso real (§6.2)
 
 ---
 
@@ -167,23 +167,23 @@ Recorte: **MVP enxuto**. Registrar e enxergar glicemia primeiro.
 
 ---
 
-**Fase 1 — O básico funcionando** · substituir o caderno
+**Fase 1 — O básico funcionando** *(concluída — em produção)* · substituir o caderno
 
 F1 perfis · F2 glicemia · F3 insulina · F6 histórico · F7 painel · configuração de metas · login com Google
 
-*Pronto quando:* Jairo registra 7 dias seguidos sem recorrer a papel.
+*Pronto quando:* Jairo registra 7 dias seguidos sem recorrer a papel. *(critério de uso — a confirmar com o tempo)*
 
 ---
 
-**Fase 2 — A família dentro** · atender a esposa e o contexto
+**Fase 2 — A família dentro** *(concluída — em produção)* · atender a esposa e o contexto
 
 F4 refeições · F5 humor · F8 acesso da observadora · F9 relatório para impressão · F10 instalável e fila offline
 
-*Pronto quando:* a esposa consulta o app sozinha, sem pedir ajuda, e imprime o relatório da consulta.
+*Pronto quando:* a esposa consulta o app sozinha, sem pedir ajuda, e imprime o relatório da consulta. *(critério de uso — a confirmar com o tempo)*
 
 ---
 
-**Fase 3 — Refinamento** · só depois de meses de uso real
+**Fase 3 — Refinamento** *(não iniciada — Jairo decidiu esperar meses de uso real antes de começar, 2026-09-24)* · só depois de meses de uso real
 
 Atividade física · lembretes push de medir e aplicar · registro de peso e pressão · resultados de HbA1c · HbA1c estimada (GMI, com aviso de que não substitui exame) · importação de CSV
 
@@ -430,9 +430,9 @@ Métricas clínicas (% na faixa, média, hipos) são **resultado do tratamento**
 | 1 | **Idade do filho e metas glicêmicas dele**, validadas com o endocrinologista | Jairo |
 | 2 | Quem opera o app no perfil do filho — ele mesmo ou Jairo? | Jairo |
 | 3 | Validar as metas de Jairo com o médico dele | Jairo |
-| 4 | Criar conta no Supabase e obter as chaves de conexão | Jairo, com instrução passo a passo |
+| 4 | ~~Criar conta no Supabase e obter as chaves de conexão~~ — resolvido, conta criada e `.env.local` configurado | Jairo, com instrução passo a passo |
 | 5 | Confirmar que as três pessoas têm conta Google | Jairo |
-| 6 | Definir formato do relatório impresso com base no que o médico pede hoje | Jairo |
+| 6 | Definir formato do relatório impresso com base no que o médico pede hoje — relatório já implementado conforme §6.1 F9; falta validar o formato na próxima consulta | Jairo |
 
 ## 14. Glossário
 
