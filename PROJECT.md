@@ -311,6 +311,8 @@ Os dois primeiros critérios decidiram. O acesso somente-leitura da esposa (F8) 
 
 **Risco anotado:** dependência de conta Google. Todos os três já têm.
 
+**Incidente (04/10/2026):** o projeto Google Cloud `glicemia` foi excluído por engano, invalidando o OAuth Client ID usado pelo Supabase e quebrando o login para todos (erro `401: deleted_client`). Não estava na lixeira de projetos excluídos (prazo de recuperação de ~30 dias já havia passado ou a exclusão foi definitiva), então foi recriado do zero: novo projeto → tela de consentimento OAuth → novo Client ID/Secret com redirect URI `https://lvxbuwfineubrlnuzckf.supabase.co/auth/v1/callback` → credenciais atualizadas em Supabase → Authentication → Providers → Google. Lição: anotar em local seguro (fora deste repositório) o nome/ID do projeto Google Cloud usado, para não excluí-lo por engano de novo.
+
 ### 8.6 Plataforma — PWA responsivo
 
 **Decidido.** Uma base de código para web e celular, instalável na tela de início.
@@ -409,6 +411,7 @@ Critérios de verificação por funcionalidade. É o que permite a você e ao Cl
 | Projeto Supabase pausar por inatividade | App fora do ar | Uso diário previne; reativação pelo painel sem perda de dados |
 | Escopo da fase 2 travar a fase 1 | Nunca sair do começo | Faseamento firme: fase 1 é só glicemia e insulina |
 | Aprisionamento no Supabase | Migração custosa | Postgres é padrão aberto; exportação em CSV/JSON |
+| Exclusão acidental do projeto Google Cloud | Login quebra para todos (já ocorreu em 04/10/2026, §8.5) | Projeto recriado; anotar nome/ID do projeto Google Cloud fora deste repositório |
 
 ## 12. Métricas de sucesso
 
